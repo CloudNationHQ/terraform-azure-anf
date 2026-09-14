@@ -30,9 +30,15 @@ Description: netapp account name
 
 Type: `string`
 
-### <a name="input_config"></a> [config](#input\_config)
+### <a name="input_location"></a> [location](#input\_location)
 
-Description: describes pools and backup configuration
+Description: azure region
+
+Type: `string`
+
+### <a name="input_netapp"></a> [netapp](#input\_netapp)
+
+Description: contains all netapp pool and backup configuration
 
 Type:
 
@@ -115,7 +121,7 @@ object({
           kerberos_5i_read_write_enabled = optional(bool)
           kerberos_5p_read_only_enabled  = optional(bool)
           kerberos_5p_read_write_enabled = optional(bool)
-        })))
+        })), {})
         snapshots = optional(map(object({
           name = optional(string)
         })), {})
@@ -129,12 +135,6 @@ object({
     })), {})
   })
 ```
-
-### <a name="input_location"></a> [location](#input\_location)
-
-Description: azure region
-
-Type: `string`
 
 ### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
 
