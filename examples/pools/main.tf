@@ -1,13 +1,13 @@
 module "naming" {
   source  = "cloudnationhq/naming/azure"
-  version = "~> 0.24"
+  version = "~> 0.32"
 
   suffix = ["demo", "pools"]
 }
 
 module "rg" {
   source  = "cloudnationhq/rg/azure"
-  version = "~> 2.0"
+  version = "~> 3.0"
 
   groups = {
     demo = {
@@ -19,9 +19,8 @@ module "rg" {
 
 module "network" {
   source  = "cloudnationhq/vnet/azure"
-  version = "~> 9.0"
+  version = "~> 10.0"
 
-  naming = local.naming
 
   vnet = {
     name                = module.naming.virtual_network.name
@@ -44,9 +43,9 @@ module "network" {
 
 module "netapp" {
   source  = "cloudnationhq/anf/azure"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
-  config = {
+  netapp = {
     name                = module.naming.netapp_account.name_unique
     location            = module.rg.groups.demo.location
     resource_group_name = module.rg.groups.demo.name
@@ -55,13 +54,13 @@ module "netapp" {
 
 module "pools" {
   source  = "cloudnationhq/anf/azure//modules/pools"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   account_name        = module.netapp.account.name
   resource_group_name = module.netapp.account.resource_group_name
   location            = module.netapp.account.location
 
-  config = {
+  netapp = {
     pools = {
       pool-standard = {
         service_level = "Standard"

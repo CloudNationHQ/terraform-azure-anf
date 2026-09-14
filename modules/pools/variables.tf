@@ -1,5 +1,5 @@
-variable "config" {
-  description = "describes pools and backup configuration"
+variable "netapp" {
+  description = "contains all netapp pool and backup configuration"
   type = object({
     backup_vaults = optional(map(object({
       name = optional(string)
@@ -78,7 +78,7 @@ variable "config" {
           kerberos_5i_read_write_enabled = optional(bool)
           kerberos_5p_read_only_enabled  = optional(bool)
           kerberos_5p_read_write_enabled = optional(bool)
-        })))
+        })), {})
         snapshots = optional(map(object({
           name = optional(string)
         })), {})

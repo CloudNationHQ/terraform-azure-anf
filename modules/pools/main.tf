@@ -1,20 +1,8 @@
 resource "azurerm_netapp_backup_vault" "this" {
-  for_each = lookup(
-    var.config, "backup_vaults", {}
-  )
+  for_each = var.netapp.backup_vaults
 
-  resource_group_name = coalesce(
-    lookup(
-      var.config, "resource_group_name", null
-    ), var.resource_group_name
-  )
-
-  location = coalesce(
-    lookup(
-      var.config, "location", null
-    ), var.location
-  )
-
+  resource_group_name = var.resource_group_name
+  location            = var.location
 
   name = coalesce(
     each.value.name, each.key
@@ -26,23 +14,14 @@ resource "azurerm_netapp_backup_vault" "this" {
 
 resource "azurerm_netapp_backup_policy" "this" {
   for_each = merge([
-    for vault_key, vault in lookup(var.config, "backup_vaults", {}) : {
-      for policy_key, policy in lookup(vault, "backup_policies", {}) :
+    for vault_key, vault in var.netapp.backup_vaults : {
+      for policy_key, policy in vault.backup_policies :
       "${vault_key}.${policy_key}" => merge(policy, { vault_key = vault_key })
     }
   ]...)
 
-  resource_group_name = coalesce(
-    lookup(
-      each.value, "resource_group_name", null
-    ), var.resource_group_name
-  )
-
-  location = coalesce(
-    lookup(
-      each.value, "location", null
-    ), var.location
-  )
+  resource_group_name = var.resource_group_name
+  location            = var.location
 
   name = coalesce(
     each.value.name, element(split(".", each.key), 1)
@@ -57,21 +36,10 @@ resource "azurerm_netapp_backup_policy" "this" {
 }
 
 resource "azurerm_netapp_pool" "this" {
-  for_each = lookup(
-    var.config, "pools", {}
-  )
+  for_each = var.netapp.pools
 
-  resource_group_name = coalesce(
-    lookup(
-      each.value, "resource_group_name", null
-    ), var.resource_group_name
-  )
-
-  location = coalesce(
-    lookup(
-      each.value, "location", null
-    ), var.location
-  )
+  resource_group_name = var.resource_group_name
+  location            = var.location
 
   name = coalesce(
     each.value.name, each.key
@@ -89,23 +57,14 @@ resource "azurerm_netapp_pool" "this" {
 
 resource "azurerm_netapp_volume" "this" {
   for_each = merge([
-    for pool_key, pool in lookup(var.config, "pools", {}) : {
-      for volume_key, volume in lookup(pool, "volumes", {}) :
+    for pool_key, pool in var.netapp.pools : {
+      for volume_key, volume in pool.volumes :
       "${pool_key}.${volume_key}" => merge(volume, { pool_key = pool_key })
     }
   ]...)
 
-  resource_group_name = coalesce(
-    lookup(
-      each.value, "resource_group_name", null
-    ), var.resource_group_name
-  )
-
-  location = coalesce(
-    lookup(
-      each.value, "location", null
-    ), var.location
-  )
+  resource_group_name = var.resource_group_name
+  location            = var.location
 
   name = coalesce(
     each.value.name, element(split(".", each.key), 1)
@@ -137,7 +96,7 @@ resource "azurerm_netapp_volume" "this" {
   tags                                                 = each.value.tags
 
   dynamic "cool_access" {
-    for_each = each.value.cool_access != null ? [each.value.cool_access] : []
+    for_each = each.value.cool_access != null ? { "this" = each.value.cool_access } : {}
 
     content {
       coolness_period_in_days = cool_access.value.coolness_period_in_days
@@ -147,7 +106,7 @@ resource "azurerm_netapp_volume" "this" {
   }
 
   dynamic "data_protection_backup_policy" {
-    for_each = each.value.data_protection_backup_policy != null ? [each.value.data_protection_backup_policy] : []
+    for_each = each.value.data_protection_backup_policy != null ? { "this" = each.value.data_protection_backup_policy } : {}
 
     content {
       backup_vault_id  = azurerm_netapp_backup_vault.this[data_protection_backup_policy.value.backup_vault_key].id
@@ -157,7 +116,7 @@ resource "azurerm_netapp_volume" "this" {
   }
 
   dynamic "data_protection_replication" {
-    for_each = each.value.data_protection_replication != null ? [each.value.data_protection_replication] : []
+    for_each = each.value.data_protection_replication != null ? { "this" = each.value.data_protection_replication } : {}
 
     content {
       endpoint_type             = data_protection_replication.value.endpoint_type
@@ -168,7 +127,7 @@ resource "azurerm_netapp_volume" "this" {
   }
 
   dynamic "data_protection_snapshot_policy" {
-    for_each = each.value.data_protection_snapshot_policy != null ? [each.value.data_protection_snapshot_policy] : []
+    for_each = each.value.data_protection_snapshot_policy != null ? { "this" = each.value.data_protection_snapshot_policy } : {}
 
     content {
       snapshot_policy_id = data_protection_snapshot_policy.value.snapshot_policy_id
@@ -176,7 +135,7 @@ resource "azurerm_netapp_volume" "this" {
   }
 
   dynamic "export_policy_rule" {
-    for_each = each.value.export_policy_rule != null ? each.value.export_policy_rule : {}
+    for_each = each.value.export_policy_rule
 
     content {
       rule_index                     = export_policy_rule.value.rule_index
@@ -197,9 +156,9 @@ resource "azurerm_netapp_volume" "this" {
 
 resource "azurerm_netapp_snapshot" "this" {
   for_each = merge([
-    for pool_key, pool in lookup(var.config, "pools", {}) : merge([
-      for volume_key, volume in lookup(pool, "volumes", {}) : {
-        for snapshot_key, snapshot in lookup(volume, "snapshots", {}) :
+    for pool_key, pool in var.netapp.pools : merge([
+      for volume_key, volume in pool.volumes : {
+        for snapshot_key, snapshot in volume.snapshots :
         "${pool_key}.${volume_key}.${snapshot_key}" => merge(snapshot, {
           pool_key   = pool_key
           volume_key = "${pool_key}.${volume_key}"
@@ -208,17 +167,8 @@ resource "azurerm_netapp_snapshot" "this" {
     ]...)
   ]...)
 
-  resource_group_name = coalesce(
-    lookup(
-      each.value, "resource_group_name", null
-    ), var.resource_group_name
-  )
-
-  location = coalesce(
-    lookup(
-      each.value, "location", null
-    ), var.location
-  )
+  resource_group_name = var.resource_group_name
+  location            = var.location
 
   name = coalesce(
     each.value.name, element(split(".", each.key), 2)
@@ -231,9 +181,9 @@ resource "azurerm_netapp_snapshot" "this" {
 
 resource "azurerm_netapp_volume_quota_rule" "this" {
   for_each = merge([
-    for pool_key, pool in lookup(var.config, "pools", {}) : merge([
-      for volume_key, volume in lookup(pool, "volumes", {}) : {
-        for rule_key, rule in lookup(volume, "quota_rules", {}) :
+    for pool_key, pool in var.netapp.pools : merge([
+      for volume_key, volume in pool.volumes : {
+        for rule_key, rule in volume.quota_rules :
         "${pool_key}.${volume_key}.${rule_key}" => merge(rule, {
           volume_key = "${pool_key}.${volume_key}"
         })
@@ -241,11 +191,7 @@ resource "azurerm_netapp_volume_quota_rule" "this" {
     ]...)
   ]...)
 
-  location = coalesce(
-    lookup(
-      each.value, "location", null
-    ), var.location
-  )
+  location = var.location
 
   name = coalesce(
     each.value.name, element(split(".", each.key), 2)

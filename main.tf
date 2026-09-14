@@ -1,24 +1,16 @@
 resource "azurerm_netapp_account" "this" {
   resource_group_name = coalesce(
-    lookup(
-      var.config, "resource_group_name", null
-    ), var.resource_group_name
+    var.netapp.resource_group_name, var.resource_group_name
   )
 
   location = coalesce(
-    lookup(
-      var.config, "location", null
-    ), var.location
+    var.netapp.location, var.location
   )
 
-  tags = coalesce(
-    var.config.tags, var.tags
-  )
-
-  name = var.config.name
+  name = var.netapp.name
 
   dynamic "active_directory" {
-    for_each = var.config.active_directory != null ? [var.config.active_directory] : []
+    for_each = var.netapp.active_directory != null ? { "this" = var.netapp.active_directory } : {}
 
     content {
       aes_encryption_enabled            = active_directory.value.aes_encryption_enabled
@@ -38,8 +30,12 @@ resource "azurerm_netapp_account" "this" {
     }
   }
 
+  tags = coalesce(
+    var.netapp.tags, var.tags
+  )
+
   dynamic "identity" {
-    for_each = var.config.identity != null ? [var.config.identity] : []
+    for_each = var.netapp.identity != null ? { "this" = var.netapp.identity } : {}
 
     content {
       identity_ids = identity.value.identity_ids
@@ -49,7 +45,7 @@ resource "azurerm_netapp_account" "this" {
 }
 
 resource "azurerm_netapp_account_encryption" "this" {
-  for_each = var.config.encryption != null ? { "default" = var.config.encryption } : {}
+  for_each = var.netapp.encryption != null ? { "this" = var.netapp.encryption } : {}
 
   netapp_account_id                     = azurerm_netapp_account.this.id
   encryption_key                        = each.value.encryption_key
@@ -60,9 +56,7 @@ resource "azurerm_netapp_account_encryption" "this" {
 }
 
 resource "azurerm_netapp_snapshot_policy" "this" {
-  for_each = lookup(
-    var.config, "snapshot_policies", {}
-  )
+  for_each = var.netapp.snapshot_policies
 
   name = coalesce(
     each.value.name, each.key
@@ -75,7 +69,7 @@ resource "azurerm_netapp_snapshot_policy" "this" {
   tags                = each.value.tags
 
   dynamic "daily_schedule" {
-    for_each = each.value.daily_schedule != null ? [each.value.daily_schedule] : []
+    for_each = each.value.daily_schedule != null ? { "this" = each.value.daily_schedule } : {}
 
     content {
       hour              = daily_schedule.value.hour
@@ -85,7 +79,7 @@ resource "azurerm_netapp_snapshot_policy" "this" {
   }
 
   dynamic "hourly_schedule" {
-    for_each = each.value.hourly_schedule != null ? [each.value.hourly_schedule] : []
+    for_each = each.value.hourly_schedule != null ? { "this" = each.value.hourly_schedule } : {}
 
     content {
       minute            = hourly_schedule.value.minute
@@ -94,7 +88,7 @@ resource "azurerm_netapp_snapshot_policy" "this" {
   }
 
   dynamic "monthly_schedule" {
-    for_each = each.value.monthly_schedule != null ? [each.value.monthly_schedule] : []
+    for_each = each.value.monthly_schedule != null ? { "this" = each.value.monthly_schedule } : {}
 
     content {
       days_of_month     = monthly_schedule.value.days_of_month
@@ -105,7 +99,7 @@ resource "azurerm_netapp_snapshot_policy" "this" {
   }
 
   dynamic "weekly_schedule" {
-    for_each = each.value.weekly_schedule != null ? [each.value.weekly_schedule] : []
+    for_each = each.value.weekly_schedule != null ? { "this" = each.value.weekly_schedule } : {}
 
     content {
       days_of_week      = weekly_schedule.value.days_of_week
@@ -117,20 +111,14 @@ resource "azurerm_netapp_snapshot_policy" "this" {
 }
 
 resource "azurerm_netapp_volume_group_oracle" "this" {
-  for_each = lookup(
-    var.config, "volume_group_oracles", {}
-  )
+  for_each = var.netapp.volume_group_oracles
 
   resource_group_name = coalesce(
-    lookup(
-      each.value, "resource_group_name", null
-    ), var.resource_group_name
+    each.value.resource_group_name, var.resource_group_name
   )
 
   location = coalesce(
-    lookup(
-      each.value, "location", null
-    ), var.location
+    each.value.location, var.location
   )
 
   name = coalesce(
@@ -142,7 +130,7 @@ resource "azurerm_netapp_volume_group_oracle" "this" {
   group_description      = each.value.group_description
 
   dynamic "volume" {
-    for_each = each.value.volume != null ? each.value.volume : {}
+    for_each = each.value.volume
 
     content {
       capacity_pool_id              = volume.value.capacity_pool_id
@@ -164,7 +152,7 @@ resource "azurerm_netapp_volume_group_oracle" "this" {
       tags                          = volume.value.tags
 
       dynamic "data_protection_replication" {
-        for_each = volume.value.data_protection_replication != null ? [volume.value.data_protection_replication] : []
+        for_each = volume.value.data_protection_replication != null ? { "this" = volume.value.data_protection_replication } : {}
 
         content {
           endpoint_type             = data_protection_replication.value.endpoint_type
@@ -175,7 +163,7 @@ resource "azurerm_netapp_volume_group_oracle" "this" {
       }
 
       dynamic "data_protection_snapshot_policy" {
-        for_each = volume.value.data_protection_snapshot_policy != null ? [volume.value.data_protection_snapshot_policy] : []
+        for_each = volume.value.data_protection_snapshot_policy != null ? { "this" = volume.value.data_protection_snapshot_policy } : {}
 
         content {
           snapshot_policy_id = data_protection_snapshot_policy.value.snapshot_policy_id
@@ -183,7 +171,7 @@ resource "azurerm_netapp_volume_group_oracle" "this" {
       }
 
       dynamic "export_policy_rule" {
-        for_each = volume.value.export_policy_rule != null ? volume.value.export_policy_rule : {}
+        for_each = volume.value.export_policy_rule
 
         content {
           allowed_clients     = export_policy_rule.value.allowed_clients
@@ -201,20 +189,14 @@ resource "azurerm_netapp_volume_group_oracle" "this" {
 }
 
 resource "azurerm_netapp_volume_group_sap_hana" "this" {
-  for_each = lookup(
-    var.config, "volume_group_sap_hanas", {}
-  )
+  for_each = var.netapp.volume_group_sap_hanas
 
   resource_group_name = coalesce(
-    lookup(
-      each.value, "resource_group_name", null
-    ), var.resource_group_name
+    each.value.resource_group_name, var.resource_group_name
   )
 
   location = coalesce(
-    lookup(
-      each.value, "location", null
-    ), var.location
+    each.value.location, var.location
   )
 
   name = coalesce(
@@ -226,7 +208,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "this" {
   group_description      = each.value.group_description
 
   dynamic "volume" {
-    for_each = each.value.volume != null ? each.value.volume : {}
+    for_each = each.value.volume
 
     content {
       capacity_pool_id              = volume.value.capacity_pool_id
@@ -248,7 +230,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "this" {
       tags                          = volume.value.tags
 
       dynamic "data_protection_replication" {
-        for_each = volume.value.data_protection_replication != null ? [volume.value.data_protection_replication] : []
+        for_each = volume.value.data_protection_replication != null ? { "this" = volume.value.data_protection_replication } : {}
 
         content {
           endpoint_type             = data_protection_replication.value.endpoint_type
@@ -259,7 +241,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "this" {
       }
 
       dynamic "data_protection_snapshot_policy" {
-        for_each = volume.value.data_protection_snapshot_policy != null ? [volume.value.data_protection_snapshot_policy] : []
+        for_each = volume.value.data_protection_snapshot_policy != null ? { "this" = volume.value.data_protection_snapshot_policy } : {}
 
         content {
           snapshot_policy_id = data_protection_snapshot_policy.value.snapshot_policy_id
@@ -267,7 +249,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "this" {
       }
 
       dynamic "export_policy_rule" {
-        for_each = volume.value.export_policy_rule != null ? volume.value.export_policy_rule : {}
+        for_each = volume.value.export_policy_rule
 
         content {
           allowed_clients     = export_policy_rule.value.allowed_clients

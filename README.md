@@ -23,13 +23,13 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 5.0)
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 4.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 5.0)
 
 ## Resources
 
@@ -45,9 +45,9 @@ The following resources are used by this module:
 
 The following input variables are required:
 
-### <a name="input_config"></a> [config](#input\_config)
+### <a name="input_netapp"></a> [netapp](#input\_netapp)
 
-Description: describes netapp account related configuration
+Description: contains all netapp configuration
 
 Type:
 
@@ -114,6 +114,8 @@ object({
       name                   = optional(string)
       application_identifier = string
       group_description      = string
+      resource_group_name    = optional(string)
+      location               = optional(string)
       volume = map(object({
         capacity_pool_id              = string
         name                          = optional(string)
@@ -156,6 +158,8 @@ object({
       name                   = optional(string)
       application_identifier = string
       group_description      = string
+      resource_group_name    = optional(string)
+      location               = optional(string)
       volume = map(object({
         capacity_pool_id              = string
         name                          = optional(string)
@@ -208,14 +212,6 @@ Description: default azure region to be used.
 Type: `string`
 
 Default: `null`
-
-### <a name="input_naming"></a> [naming](#input\_naming)
-
-Description: contains naming convention
-
-Type: `map(string)`
-
-Default: `{}`
 
 ### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
 
@@ -282,11 +278,7 @@ Module is maintained by [these awesome contributors](https://github.com/cloudnat
 
 We welcome contributions from the community! Whether it's reporting a bug, suggesting a new feature, or submitting a pull request, your input is highly valued.
 
-For more information, please see our contribution [guidelines](./CONTRIBUTING.md). <br><br>
-
-<a href="https://github.com/cloudnationhq/terraform-azure-anf/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=cloudnationhq/terraform-azure-anf" />
-</a>
+For more information, please see our contribution [guidelines](./CONTRIBUTING.md).
 
 ## License
 
@@ -296,4 +288,3 @@ MIT Licensed. See [LICENSE](https://github.com/cloudnationhq/terraform-azure-anf
 
 - [Documentation](https://learn.microsoft.com/en-us/azure/azure-netapp-files/)
 - [Rest Api](https://learn.microsoft.com/en-us/rest/api/netapp/)
-- [Rest Api Specs](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/netapp)

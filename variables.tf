@@ -1,5 +1,5 @@
-variable "config" {
-  description = "describes netapp account related configuration"
+variable "netapp" {
+  description = "contains all netapp configuration"
   type = object({
     name                = string
     resource_group_name = optional(string)
@@ -62,6 +62,8 @@ variable "config" {
       name                   = optional(string)
       application_identifier = string
       group_description      = string
+      resource_group_name    = optional(string)
+      location               = optional(string)
       volume = map(object({
         capacity_pool_id              = string
         name                          = optional(string)
@@ -104,6 +106,8 @@ variable "config" {
       name                   = optional(string)
       application_identifier = string
       group_description      = string
+      resource_group_name    = optional(string)
+      location               = optional(string)
       volume = map(object({
         capacity_pool_id              = string
         name                          = optional(string)
@@ -145,20 +149,14 @@ variable "config" {
   })
 
   validation {
-    condition     = var.config.location != null || var.location != null
+    condition     = var.netapp.location != null || var.location != null
     error_message = "location must be provided either in the config object or as a separate variable."
   }
 
   validation {
-    condition     = var.config.resource_group_name != null || var.resource_group_name != null
+    condition     = var.netapp.resource_group_name != null || var.resource_group_name != null
     error_message = "resource group name must be provided either in the config object or as a separate variable."
   }
-}
-
-variable "naming" {
-  description = "contains naming convention"
-  type        = map(string)
-  default     = {}
 }
 
 variable "location" {
