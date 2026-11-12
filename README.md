@@ -23,13 +23,13 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 5.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 5.13)
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 5.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (5.13.0)
 
 ## Resources
 
@@ -58,7 +58,17 @@ object({
     location            = optional(string)
     tags                = optional(map(string))
     active_directory = optional(object({
-      aes_encryption_enabled            = optional(bool)
+      aes_encryption_enabled                          = optional(bool)
+      administrator_users                             = optional(list(string))
+      backup_users                                    = optional(list(string))
+      domain_controller_connection_encryption_enabled = optional(bool)
+      ldap_client_preferred_servers                   = optional(list(string))
+      security_users                                  = optional(list(string))
+      ldap_search_scope = optional(object({
+        group_dn                = optional(string)
+        group_membership_filter = optional(string)
+        user_dn                 = optional(string)
+      }))
       dns_servers                       = list(string)
       domain                            = string
       kerberos_ad_name                  = optional(string)
