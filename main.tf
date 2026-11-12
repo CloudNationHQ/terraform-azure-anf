@@ -13,20 +13,35 @@ resource "azurerm_netapp_account" "this" {
     for_each = var.netapp.active_directory != null ? { "this" = var.netapp.active_directory } : {}
 
     content {
-      aes_encryption_enabled            = active_directory.value.aes_encryption_enabled
-      dns_servers                       = active_directory.value.dns_servers
-      domain                            = active_directory.value.domain
-      kerberos_ad_name                  = active_directory.value.kerberos_ad_name
-      kerberos_kdc_ip                   = active_directory.value.kerberos_kdc_ip
-      ldap_over_tls_enabled             = active_directory.value.ldap_over_tls_enabled
-      ldap_signing_enabled              = active_directory.value.ldap_signing_enabled
-      local_nfs_users_with_ldap_allowed = active_directory.value.local_nfs_users_with_ldap_allowed
-      organizational_unit               = active_directory.value.organizational_unit
-      password                          = active_directory.value.password
-      server_root_ca_certificate        = active_directory.value.server_root_ca_certificate
-      site_name                         = active_directory.value.site_name
-      smb_server_name                   = active_directory.value.smb_server_name
-      username                          = active_directory.value.username
+      aes_encryption_enabled                          = active_directory.value.aes_encryption_enabled
+      administrator_users                             = active_directory.value.administrator_users
+      backup_users                                    = active_directory.value.backup_users
+      security_users                                  = active_directory.value.security_users
+      ldap_client_preferred_servers                   = active_directory.value.ldap_client_preferred_servers
+      domain_controller_connection_encryption_enabled = active_directory.value.domain_controller_connection_encryption_enabled
+      dns_servers                                     = active_directory.value.dns_servers
+      domain                                          = active_directory.value.domain
+      kerberos_ad_name                                = active_directory.value.kerberos_ad_name
+      kerberos_kdc_ip                                 = active_directory.value.kerberos_kdc_ip
+      ldap_over_tls_enabled                           = active_directory.value.ldap_over_tls_enabled
+      ldap_signing_enabled                            = active_directory.value.ldap_signing_enabled
+      local_nfs_users_with_ldap_allowed               = active_directory.value.local_nfs_users_with_ldap_allowed
+      organizational_unit                             = active_directory.value.organizational_unit
+      password                                        = active_directory.value.password
+      server_root_ca_certificate                      = active_directory.value.server_root_ca_certificate
+      site_name                                       = active_directory.value.site_name
+      smb_server_name                                 = active_directory.value.smb_server_name
+      username                                        = active_directory.value.username
+
+      dynamic "ldap_search_scope" {
+        for_each = active_directory.value.ldap_search_scope != null ? { "this" = active_directory.value.ldap_search_scope } : {}
+
+        content {
+          group_dn                = ldap_search_scope.value.group_dn
+          group_membership_filter = ldap_search_scope.value.group_membership_filter
+          user_dn                 = ldap_search_scope.value.user_dn
+        }
+      }
     }
   }
 
